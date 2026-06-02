@@ -124,3 +124,33 @@ test('buildPhoneRequest: ntfy 拼 server/topic 与 Priority', () => {
   assert.equal(r.url, 'https://ntfy.sh/mytopic');
   assert.equal(r.headers.Priority, '5');
 });
+
+test('planActions: 组合分类/声音/语音/音乐/推送', () => {
+  const cfg = h.mergeConfig({ music_on_done: true, music_file: 'm.wav',
+    phone: { provider: 'ntfy', ntfy_topic: 't' } });
+  const plan = h.planActions('Stop', { message: 'done', cwd: '/a/b' }, cfg);
+  assert.equal(plan.class, 'done');
+  assert.equal(plan.voice, true);
+  assert.equal(plan.music.on, true);
+  assert.equal(plan.music.file, 'm.wav');
+  assert.ok(Array.isArray(plan.sound));
+  assert.equal(plan.phone.url, 'https://ntfy.sh/t');
+});
+
+test('planActions: 紧急事件不放完成音乐', () => {
+  const cfg = h.mergeConfig({ music_on_done: true, music_file: 'm.wav' });
+  const plan = h.planActions('Notification', {}, cfg);
+  assert.equal(plan.music.on, false);
+});
+
+test('DRYRUN: handler 子进程输出计划到 stderr 且退出 0', () => {
+  const { spawnSync } = require('node:child_process');
+  const handler = pathmod.join(__dirname, '..', 'plugins', 'cc-notify', 'handler.js');
+  const r = spawnSync(process.execPath, [handler, '--event', 'Notification'],
+    { input: JSON.stringify({ hook_event_name: 'Notification', message: '需要授权', cwd: 'E:/demo' }),
+      env: { ...process.env, CC_NOTIFY_DRYRUN: '1' }, encoding: 'utf8' });
+  assert.equal(r.status, 0);
+  const plan = JSON.parse(r.stderr);
+  assert.equal(plan.class, 'urgent');
+  assert.ok(plan.title.includes('需要你'));
+});
