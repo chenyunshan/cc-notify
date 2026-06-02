@@ -22,8 +22,9 @@ const OUT_GIF = path.join(ROOT, 'demo', 'cc-notify-demo.gif');
 
 const W = 1180, H = 700;
 const PORT = 9222;
-const CAPTURE_MS = 13000;
-const URGENT_AT = 3300;   // 与 index.html run() 时间轴对齐（ms）
+const CAPTURE_MS = 15500;  // 截帧时长，足够长以纳入结尾 CTA 卡片
+const OUT_SECONDS = 13.5;  // 最终视频时长（音轨补静音到此，混流按此截断）
+const URGENT_AT = 3300;    // 与 index.html run() 时间轴对齐（ms）
 const DONE_AT = 9300;
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -139,10 +140,11 @@ function encode() {
     '-movflags', '+faststart', silentMp4], '合成画面');
 
   const du = (URGENT_AT), dd = (DONE_AT);
+  // apad 把音轨补静音到 OUT_SECONDS，避免混流 -shortest 把视频截到「完成音」结束处（丢掉结尾卡片）
   ff(['-y', '-i', path.join(SOUNDS, 'urgent.wav'), '-i', path.join(SOUNDS, 'done.wav'),
     '-filter_complex',
-    `[0]adelay=${du}|${du}[a];[1]adelay=${dd}|${dd}[b];[a][b]amix=inputs=2:normalize=0[m]`,
-    '-map', '[m]', '-t', String(CAPTURE_MS / 1000), '-ar', '44100', audioWav], '合成音轨');
+    `[0]adelay=${du}|${du}[a];[1]adelay=${dd}|${dd}[b];[a][b]amix=inputs=2:normalize=0,apad[m]`,
+    '-map', '[m]', '-t', String(OUT_SECONDS), '-ar', '44100', audioWav], '合成音轨');
 
   ff(['-y', '-i', silentMp4, '-i', audioWav, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
     '-shortest', OUT_MP4], '混流 MP4');

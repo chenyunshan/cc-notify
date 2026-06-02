@@ -37,7 +37,9 @@
   header.top .badge {
     font-family: var(--mono); font-size: 12px; color: var(--accent);
     border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px;
+    animation: breathe 2s ease-in-out infinite;  /* 贯穿全程的轻微动画，保证录制连续 */
   }
+  @keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
   header.top .tag { color: var(--muted); font-size: 13px; }
 
   .scene {
