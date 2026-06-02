@@ -10,8 +10,8 @@ const { spawn } = require('child_process');
 const DEFAULTS = {
   sound: true, voice: true, music_on_done: false, music_file: '',
   sound_urgent: 'default', sound_done: 'default',
-  beep_fallback: false, visual_fallback: false,
-  voice_urgent: '克劳德需要你操作', voice_done: '任务完成了',
+  beep_fallback: false, visual_fallback: true,
+  voice_urgent: '克劳德需要你操作', voice_done: '这轮完成，请查看',
   phone: {
     provider: 'none', bark_key: '', pushdeer_key: '', serverchan_key: '',
     wecom_webhook: '', ntfy_server: 'https://ntfy.sh', ntfy_topic: '',

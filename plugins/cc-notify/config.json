@@ -6,8 +6,8 @@
   "sound_urgent": "default",
   "sound_done": "default",
   "beep_fallback": false,
-  "visual_fallback": false,
+  "visual_fallback": true,
   "voice_urgent": "克劳德需要你操作",
-  "voice_done": "任务完成了",
+  "voice_done": "这轮完成，请查看",
   "phone": { "provider": "none" }
 }

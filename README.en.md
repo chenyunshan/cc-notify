@@ -62,9 +62,9 @@ Config file: `~/.claude/cc-notify/config.json` (written by `/cc-notify:setup`; f
 | `sound_urgent` | `"default"` | Urgent sound: `default` (bundled WAV) / `system` / `beep` / `off` / custom wav path |
 | `sound_done` | `"default"` | Done sound: same options |
 | `beep_fallback` | `false` | Hardware-buzzer fallback: also fire the PC speaker on urgent/done (see "Muted / broken sound card") |
-| `visual_fallback` | `false` | Visual fallback: pop a system notification on urgent events only (visible even when muted) |
+| `visual_fallback` | `true` | Visual balloon toast (**on by default**): urgent events only, auto-dismiss, visible even when muted |
 | `voice_urgent` | `"克劳德需要你操作"` | Spoken phrase for urgent |
-| `voice_done` | `"任务完成了"` | Spoken phrase for done |
+| `voice_done` | `"这轮完成，请查看"` | Spoken phrase for done (fires at each turn end) |
 | `phone.provider` | `"none"` | `none`/`bark`/`pushdeer`/`serverchan`/`wecom`/`ntfy`/`feishu`/`dingtalk`/`pushplus`/`telegram` |
 | `phone.bark_key` | `""` | Bark key |
 | `phone.pushdeer_key` | `""` | PushDeer pushkey |
@@ -85,7 +85,7 @@ Sound playback uses a **fallback chain**: bundled WAV → system sound → progr
 - **Broken / missing sound card**: the chain automatically falls through to the programmatic beep (on Windows that's the PC speaker; machines with a hardware buzzer will hear it).
 - **Muted only** (device works, volume 0 / muted): the WAV "plays successfully" but you hear nothing, so local sound can't reliably reach you. In that case:
   - Enable `beep_fallback`: urgent/done also fire the PC speaker (a desktop buzzer is independent of the sound card and may sound even when muted; most laptops have no buzzer and fall back to the system sound).
-  - Enable `visual_fallback`: urgent events pop a system notification / message box, visible even when muted.
+  - `visual_fallback` (**on by default**): urgent events pop a system balloon toast (auto-dismiss), visible even when muted.
   - **Most reliable**: configure **phone push** (ntfy / Bark, etc.) — fully independent of local audio; works when muted, when the card is broken, or when you're away from the computer.
 - Cross-platform implementation: beep — Windows `console.beep` (PC speaker) / macOS `osascript beep` / Linux terminal bell; popup — Windows balloon toast (NotifyIcon, auto-dismiss) / macOS Notification Center / Linux `notify-send`.
 
