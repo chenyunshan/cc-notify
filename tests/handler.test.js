@@ -83,3 +83,44 @@ test('resolveSound: 自定义路径 → 先自定义，再回退默认链', () =
   assert.equal(chain[2].type, 'system');
   assert.equal(chain[3].type, 'beep');
 });
+
+const URGENT_C = { cls: 'urgent', title: 'T', body: 'B' };
+const DONE_C = { cls: 'done', title: 'T', body: 'B' };
+
+test('buildPhoneRequest: none → null', () => {
+  assert.equal(h.buildPhoneRequest(h.DEFAULTS, URGENT_C), null);
+});
+
+test('buildPhoneRequest: bark urgent 带 alarm 与 timeSensitive', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'bark', bark_key: 'KEY' } }), URGENT_C);
+  assert.equal(r.method, 'GET');
+  assert.ok(r.url.startsWith('https://api.day.app/KEY/'));
+  assert.ok(r.url.includes('level=timeSensitive'));
+  assert.ok(r.url.includes('sound=alarm'));
+  assert.ok(r.url.includes('group=ClaudeCode'));
+});
+
+test('buildPhoneRequest: pushdeer POST form', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'pushdeer', pushdeer_key: 'PK' } }), DONE_C);
+  assert.equal(r.method, 'POST');
+  assert.equal(r.url, 'https://api2.pushdeer.com/message/push');
+  assert.ok(r.body.includes('pushkey=PK'));
+});
+
+test('buildPhoneRequest: serverchan URL 带 key', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'serverchan', serverchan_key: 'SK' } }), DONE_C);
+  assert.equal(r.url, 'https://sctapi.ftqq.com/SK.send');
+});
+
+test('buildPhoneRequest: wecom JSON', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'wecom', wecom_webhook: 'https://wx/x' } }), DONE_C);
+  assert.equal(r.url, 'https://wx/x');
+  assert.equal(r.headers['Content-Type'], 'application/json');
+  assert.ok(r.body.includes('msgtype'));
+});
+
+test('buildPhoneRequest: ntfy 拼 server/topic 与 Priority', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'ntfy', ntfy_topic: 'mytopic' } }), URGENT_C);
+  assert.equal(r.url, 'https://ntfy.sh/mytopic');
+  assert.equal(r.headers.Priority, '5');
+});
