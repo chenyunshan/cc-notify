@@ -1,0 +1,10 @@
+{
+  "name": "cc-notify",
+  "description": "Claude Code 需要权限/输入或任务完成时，用精选提示音、语音播报、(可选)音乐与手机推送提醒你。安装即启用；手机推送用 /cc-notify:setup 配置。",
+  "version": "2.0.0",
+  "author": { "name": "chenyunshan" },
+  "homepage": "https://github.com/chenyunshan/cc-notify",
+  "repository": "https://github.com/chenyunshan/cc-notify",
+  "license": "MIT",
+  "keywords": ["notification", "hooks", "tts", "bark", "ntfy", "productivity"]
+}
