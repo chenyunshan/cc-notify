@@ -1,6 +1,6 @@
 {
   "name": "cc-notify",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "Claude Code 通知插件：精选提示音 + 语音播报 + (可选)音乐 + 手机推送。",
   "scripts": {

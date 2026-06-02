@@ -3,14 +3,14 @@
   "owner": { "name": "chenyunshan" },
   "metadata": {
     "description": "Claude Code 通知助手市场",
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   "plugins": [
     {
       "name": "cc-notify",
       "source": "./plugins/cc-notify",
       "description": "Claude Code 需要权限/输入或任务完成时，用精选提示音、语音播报、(可选)音乐与手机推送提醒你，无需盯屏。",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "license": "MIT",
       "keywords": ["notification", "hooks", "tts", "bark", "ntfy", "feishu", "dingtalk", "telegram", "pushplus", "productivity"]
     }
