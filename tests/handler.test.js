@@ -52,3 +52,34 @@ test('loadConfig: 全部读不到时回退 DEFAULTS', () => {
   const c = h.loadConfig(['/nonexistent/a.json', '/nonexistent/b.json']);
   assert.deepEqual(c, h.mergeConfig({}));
 });
+
+test('resolveSound: 默认 = WAV → 系统 → beep', () => {
+  const chain = h.resolveSound(h.DEFAULTS, 'urgent');
+  assert.equal(chain.length, 3);
+  assert.equal(chain[0].type, 'file');
+  assert.ok(chain[0].file.endsWith(pathmod.join('sounds', 'urgent.wav')));
+  assert.equal(chain[1].type, 'system');
+  assert.equal(chain[2].type, 'beep');
+});
+
+test('resolveSound: sound 总开关关 → 空', () => {
+  assert.deepEqual(h.resolveSound(h.mergeConfig({ sound: false }), 'done'), []);
+});
+
+test('resolveSound: 单项 off → 空', () => {
+  assert.deepEqual(h.resolveSound(h.mergeConfig({ sound_done: 'off' }), 'done'), []);
+});
+
+test('resolveSound: beep → 仅 beep', () => {
+  const chain = h.resolveSound(h.mergeConfig({ sound_urgent: 'beep' }), 'urgent');
+  assert.deepEqual(chain, [{ type: 'beep', cls: 'urgent' }]);
+});
+
+test('resolveSound: 自定义路径 → 先自定义，再回退默认链', () => {
+  const chain = h.resolveSound(h.mergeConfig({ sound_done: 'C:/my.wav' }), 'done');
+  assert.equal(chain[0].type, 'file');
+  assert.equal(chain[0].file, 'C:/my.wav');
+  assert.ok(chain[1].file.endsWith(pathmod.join('sounds', 'done.wav')));
+  assert.equal(chain[2].type, 'system');
+  assert.equal(chain[3].type, 'beep');
+});
