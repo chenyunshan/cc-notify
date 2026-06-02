@@ -10,6 +10,12 @@ Stop watching the screen. When Claude Code **needs permission, is waiting for in
 - 🪟 Cross-platform: Windows / macOS / Linux. Zero runtime dependencies (Node built-ins only).
 - 😴 Effortless: sound & voice work right after install; phone push is one command, no file editing.
 
+## Demo
+
+![cc-notify demo](demo/cc-notify-demo.gif)
+
+> Silent GIF above; a **video with sound** is at [`demo/cc-notify-demo.mp4`](demo/cc-notify-demo.mp4). To hear the real sound + voice yourself, open [`demo/index.html`](demo/index.html) in a browser.
+
 ## Install
 
 Run two lines inside Claude Code:

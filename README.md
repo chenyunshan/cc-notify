@@ -11,6 +11,12 @@
 - 🪟 跨平台：Windows / macOS / Linux。零运行时依赖（仅用 Node 内置模块）。
 - 😴 傻瓜：装好声音/语音即用；手机推送一条命令搞定，全程不用手改文件。
 
+## 演示
+
+![cc-notify 演示](demo/cc-notify-demo.gif)
+
+> 上图为静音 GIF；**带声音**的视频见 [`demo/cc-notify-demo.mp4`](demo/cc-notify-demo.mp4)。想亲耳听真实提示音 + 语音：用浏览器打开 [`demo/index.html`](demo/index.html)。
+
 ## 安装
 
 在 Claude Code 里执行两行：

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cc-notify · 免除盯屏演示</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel-2: #0e1422;
+    --ink: #e8edf6;
+    --muted: #8a97ad;
+    --line: #1f2a3d;
+    --accent: #41d1b4;       /* 完成/成功 */
+    --urgent: #ff7a59;       /* 紧急 */
+    --urgent-2: #ffd166;
+    --mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+    --r: 16px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(65,209,180,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(255,122,89,0.10), transparent 60%),
+      var(--bg);
+    color: var(--ink); font-family: var(--sans);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100%; padding: 28px;
+  }
+  .stage { width: min(1080px, 96vw); }
+  header.top { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  header.top h1 { font-size: 22px; margin: 0; letter-spacing: .5px; }
+  header.top .badge {
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px;
+  }
+  header.top .tag { color: var(--muted); font-size: 13px; }
+
+  .scene {
+    position: relative; display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line); border-radius: 22px; padding: 20px;
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,.8);
+    overflow: hidden; min-height: 440px;
+  }
+
+  /* 终端 */
+  .laptop { display: flex; flex-direction: column; min-width: 0; }
+  .term {
+    background: #070b12; border: 1px solid var(--line); border-radius: 12px;
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .term .bar { display: flex; gap: 7px; padding: 11px 13px; border-bottom: 1px solid var(--line); }
+  .term .bar i { width: 11px; height: 11px; border-radius: 50%; background: #2a3650; display: inline-block; }
+  .term .bar i:nth-child(1){ background:#ff5f57;} .term .bar i:nth-child(2){ background:#febc2e;} .term .bar i:nth-child(3){ background:#28c840;}
+  .term .bar span { margin-left: 10px; color: var(--muted); font: 12px var(--mono); }
+  .term .body { padding: 14px 16px; font: 13.5px/1.7 var(--mono); flex: 1; overflow: hidden; }
+  .ln { white-space: pre-wrap; opacity: 0; transform: translateY(4px); transition: all .3s var(--ease); }
+  .ln.show { opacity: 1; transform: none; }
+  .ln .p { color: var(--accent); }
+  .ln .d { color: var(--muted); }
+  .gate {
+    margin-top: 8px; border: 1px solid rgba(255,122,89,.5); background: rgba(255,122,89,.08);
+    border-radius: 10px; padding: 10px 12px; color: var(--urgent-2);
+    opacity: 0; transform: translateY(6px); transition: all .4s var(--ease);
+  }
+  .gate.show { opacity: 1; transform: none; }
+  .gate.armed { animation: pulseGate 1s var(--ease) infinite; }
+  @keyframes pulseGate { 0%,100%{ box-shadow: 0 0 0 0 rgba(255,122,89,.5);} 50%{ box-shadow: 0 0 0 8px rgba(255,122,89,0);} }
+  .gate b { color: #fff; }
+  .ok { color: var(--accent); }
+
+  /* 你（人） */
+  .you {
+    position: absolute; left: 22px; bottom: 18px; display: flex; align-items: center; gap: 10px;
+    background: rgba(8,12,20,.7); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px 7px 9px; backdrop-filter: blur(6px);
+  }
+  .you .face { font-size: 22px; transition: transform .3s var(--ease); }
+  .you.alert .face { transform: scale(1.25); }
+  .you .who { font-size: 12.5px; color: var(--muted); }
+
+  /* 手机 */
+  .phone-wrap { display: flex; align-items: center; justify-content: center; }
+  .phone {
+    width: 215px; height: 410px; border-radius: 34px; background: #05080e;
+    border: 8px solid #1a2740; box-shadow: 0 25px 60px -25px #000, inset 0 0 0 2px #0b1320;
+    position: relative; overflow: hidden;
+  }
+  .phone .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 92px; height: 22px; background:#1a2740; border-radius: 0 0 14px 14px; }
+  .phone .screen { position: absolute; inset: 8px; border-radius: 26px;
+    background: radial-gradient(120% 80% at 50% 0%, #16243c, #0a1120 70%); padding: 34px 12px 12px; }
+  .phone .clock { text-align: center; color: #cdd9ee; font-weight: 600; font-size: 30px; letter-spacing: 1px; }
+  .phone .date { text-align: center; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .push {
+    margin-top: 14px; background: rgba(20,28,44,.92); border: 1px solid var(--line);
+    border-radius: 14px; padding: 10px 11px; transform: translateY(-130%); opacity: 0;
+    transition: transform .55s var(--ease), opacity .4s;
+  }
+  .push.in { transform: translateY(0); opacity: 1; }
+  .push.buzz { animation: buzz .5s ease; }
+  @keyframes buzz { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+  .push .h { display:flex; align-items:center; gap:7px; font-size: 11.5px; color: var(--muted); }
+  .push .h .dot { width: 16px; height: 16px; border-radius: 5px; background: var(--urgent); display:grid; place-items:center; font-size:10px; }
+  .push.done .h .dot { background: var(--accent); }
+  .push .t { font-size: 13px; font-weight: 650; margin: 5px 0 2px; color: #fff; }
+  .push .b { font-size: 12px; color: #c2cde0; }
+
+  /* Windows 风格气泡通知（toast） */
+  .toast {
+    position: absolute; right: 18px; bottom: 18px; width: 290px;
+    background: rgba(18,24,38,.96); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 14px; display: flex; gap: 11px; align-items: flex-start;
+    transform: translateX(360px); opacity: 0; transition: transform .5s var(--ease), opacity .4s;
+    box-shadow: 0 20px 50px -20px #000;
+  }
+  .toast.in { transform: translateX(0); opacity: 1; }
+  .toast .ic { width: 34px; height: 34px; border-radius: 9px; display:grid; place-items:center; font-size:18px;
+    background: rgba(255,122,89,.16); border:1px solid rgba(255,122,89,.4); }
+  .toast.done .ic { background: rgba(65,209,180,.16); border-color: rgba(65,209,180,.4); }
+  .toast .tt { font-size: 13.5px; font-weight: 650; }
+  .toast .bb { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* 字幕 + 指示灯 */
+  .caption {
+    margin-top: 16px; min-height: 26px; text-align: center; font-size: 15px; color: var(--ink);
+    transition: opacity .3s; display:flex; align-items:center; justify-content:center; gap: 12px;
+  }
+  .cues { display: inline-flex; gap: 8px; }
+  .cue { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; opacity: .35; transition: all .2s; }
+  .cue.on { opacity: 1; color: #fff; border-color: var(--urgent); box-shadow: 0 0 16px -4px var(--urgent); transform: scale(1.06); }
+  .cue.on.green { border-color: var(--accent); box-shadow: 0 0 16px -4px var(--accent); }
+
+  .controls { margin-top: 16px; display: flex; gap: 12px; align-items: center; justify-content: center; }
+  button.play {
+    font: 600 15px var(--sans); color: #04130f; background: linear-gradient(180deg, #5fe6c8, var(--accent));
+    border: 0; border-radius: 12px; padding: 12px 26px; cursor: pointer; transition: transform .15s var(--ease);
+  }
+  button.play:hover { transform: translateY(-1px); }
+  button.play:disabled { opacity: .5; cursor: default; transform: none; }
+  .hint { color: var(--muted); font-size: 12.5px; }
+  .end {
+    position:absolute; inset:0; display:grid; place-items:center; text-align:center;
+    background: rgba(8,12,20,.86); backdrop-filter: blur(4px); opacity:0; pointer-events:none;
+    transition: opacity .5s var(--ease);
+  }
+  .end.in { opacity: 1; }
+  .end h2 { font-size: 26px; margin: 0 0 8px; }
+  .end p { color: var(--muted); margin: 0; font-size: 14px; }
+  .end .cmd { font: 13px var(--mono); color: var(--accent); margin-top: 14px; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <header class="top">
+      <h1>cc-notify</h1>
+      <span class="badge">免除盯屏</span>
+      <span class="tag">需要权限 / 等待输入 / 任务完成 → 声音 · 语音 · 手机推送</span>
+    </header>
+
+    <div class="scene" id="scene">
+      <!-- 终端 -->
+      <div class="laptop">
+        <div class="term">
+          <div class="bar"><i></i><i></i><i></i><span>claude-code — 你的项目</span></div>
+          <div class="body" id="term"></div>
+        </div>
+      </div>
+
+      <!-- 手机 -->
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="clock">09:41</div>
+            <div class="date">星期二 6月2日</div>
+            <div class="push" id="push">
+              <div class="h"><span class="dot" id="pushDot">!</span><span id="pushApp">cc-notify</span></div>
+              <div class="t" id="pushTitle">Claude Code 需要你</div>
+              <div class="b" id="pushBody">正在等待你的确认或输入</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 你 -->
+      <div class="you" id="you"><span class="face" id="face">☕</span><span class="who" id="who">你去忙别的了…</span></div>
+
+      <!-- Windows 气泡通知 -->
+      <div class="toast" id="toast">
+        <div class="ic" id="toastIc">🔔</div>
+        <div><div class="tt" id="toastTitle">Claude Code 需要你</div><div class="bb" id="toastBody">等待授权…</div></div>
+      </div>
+
+      <!-- 结束卡 -->
+      <div class="end" id="end">
+        <div>
+          <h2>cc-notify — 让 Claude Code 主动找你</h2>
+          <p>不用一直盯着屏幕。声音 · 语音 · 手机推送，三重提醒。</p>
+          <div class="cmd">/plugin install cc-notify@cc-notify</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="caption" id="caption">点「开始演示」——记得打开音量 🔊</div>
+    <div class="caption" style="margin-top:6px">
+      <span class="cues">
+        <span class="cue" id="cueSound">🔊 提示音</span>
+        <span class="cue" id="cueVoice">🗣️ 语音</span>
+        <span class="cue" id="cuePhone">📱 手机推送</span>
+      </span>
+    </div>
+
+    <div class="controls">
+      <button class="play" id="play">▶ 开始演示</button>
+      <span class="hint">想录成视频：按 <b>Win + Alt + R</b>（Windows 自带录屏，含声音）</span>
+    </div>
+  </div>
+
+<script src="sounds.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  function play(name) {
+    try { const a = new Audio((window.CCN_SOUNDS||{})[name]); a.volume = 1; a.play().catch(()=>{}); } catch {}
+  }
+  function speak(text) {
+    try {
+      if (!window.speechSynthesis) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-CN'; u.rate = 1.05;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch {}
+  }
+  function cue(id, on, green) {
+    const el = $(id); el.classList.toggle('on', on); el.classList.toggle('green', !!green);
+    if (on) setTimeout(() => el.classList.remove('on','green'), 1600);
+  }
+  function cap(text) { $('caption').textContent = text; }
+
+  const TERM = [
+    ['$ ', 'claude', '  重构通知模块并补测试'],
+    ['', '', '· 读取 12 个文件…'],
+    ['', '', '· 生成补丁，运行测试…'],
+  ];
+  function addLine(html) {
+    const d = document.createElement('div'); d.className = 'ln'; d.innerHTML = html;
+    $('term').appendChild(d); requestAnimationFrame(() => d.classList.add('show'));
+  }
+
+  async function run() {
+    const btn = $('play'); btn.disabled = true;
+    // 重置
+    $('term').innerHTML = ''; $('toast').className = 'toast'; $('push').className = 'push';
+    $('end').classList.remove('in'); $('you').classList.remove('alert'); $('face').textContent='☕'; $('who').textContent='你去忙别的了…';
+
+    // 1) 干活
+    cap('Claude Code 正在干活，你可以去忙别的 ☕');
+    for (const [p,c,d] of TERM) { addLine(`<span class="d">${p}</span><span class="p">${c}</span><span class="d">${d}</span>`); await sleep(900); }
+    await sleep(500);
+
+    // 2) 需要权限 → 紧急三重提醒
+    addLine('');
+    const gate = document.createElement('div'); gate.className = 'gate';
+    gate.innerHTML = '⚠ 需要你授权运行：<b>npm install</b> —— 已暂停，等待确认';
+    $('term').appendChild(gate); requestAnimationFrame(()=>gate.classList.add('show','armed'));
+
+    play('urgent'); speak('克劳德需要你操作');
+    cue('cueSound', true); cue('cueVoice', true); cue('cuePhone', true);
+    // toast
+    $('toastIc').textContent = '🔔'; $('toast').className = 'toast in';
+    $('toastTitle').textContent = 'Claude Code 需要你'; $('toastBody').textContent = '等待授权：npm install';
+    // phone
+    $('pushDot').textContent = '!'; $('push').className = 'push in buzz';
+    $('pushTitle').textContent = 'Claude Code 需要你'; $('pushBody').textContent = '等待授权：npm install（项目：your-app）';
+    // 你被叫回来
+    cap('🔔 提示音 + 🗣️ 语音 + 📱 手机推送 —— 同时叫你回来');
+    await sleep(900); $('you').classList.add('alert'); $('face').textContent='👀'; $('who').textContent='被叫回来了！';
+    await sleep(2600);
+    $('toast').className = 'toast';
+
+    // 3) 你同意，继续
+    cap('你回来按了「同意」，Claude 继续干 ✅');
+    gate.classList.remove('armed');
+    gate.innerHTML = '✓ 已授权，继续执行…';
+    gate.style.borderColor = 'rgba(65,209,180,.5)'; gate.style.background = 'rgba(65,209,180,.08)'; gate.style.color = 'var(--accent)';
+    $('face').textContent='🧑‍💻'; $('who').textContent='又去忙别的了…'; $('you').classList.remove('alert');
+    await sleep(800);
+    addLine('<span class="d">· 安装依赖… </span><span class="ok">完成 ✓</span>');
+    await sleep(700);
+    addLine('<span class="d">· 运行测试… </span><span class="ok">28 passed ✓</span>');
+    await sleep(900);
+
+    // 4) 任务完成
+    play('done'); speak('任务完成了');
+    cue('cueSound', true, true); cue('cueVoice', true, true); cue('cuePhone', true, true);
+    $('toastIc').textContent = '✅'; $('toast').className = 'toast done in';
+    $('toastTitle').textContent = 'Claude Code 任务完成'; $('toastBody').textContent = '当前任务已结束';
+    $('pushDot').textContent = '✓'; $('push').className = 'push done in buzz';
+    $('pushTitle').textContent = 'Claude Code 任务完成'; $('pushBody').textContent = '当前任务已结束（项目：your-app）';
+    cap('✅ 完成也会通知你 —— 全程不用盯着屏幕');
+    await sleep(2600);
+    $('toast').className = 'toast done';
+
+    // 5) 结束
+    $('end').classList.add('in');
+    btn.disabled = false; btn.textContent = '↻ 重播';
+  }
+
+  $('play').addEventListener('click', run);
+</script>
+</body>
+</html>
