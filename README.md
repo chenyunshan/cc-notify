@@ -1,6 +1,8 @@
 # cc-notify · Claude Code 通知插件
 
-**[English](README.en.md) ｜ 简体中文**
+**[English](README.en.md) ｜ 简体中文** · 🔗 仓库：<https://github.com/chenyunshan/cc-notify>
+
+![cc-notify 预览](assets/cc-notify.png)
 
 让 Claude Code 不用盯屏。当它**需要权限 / 等待输入 / 任务完成**时，自动用
 **精选提示音 + 语音播报 +（可选）音乐 + （可选）手机推送**提醒你。

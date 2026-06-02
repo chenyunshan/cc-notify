@@ -1,6 +1,8 @@
 # cc-notify · Claude Code notification plugin
 
-**English ｜ [简体中文](README.md)**
+**English ｜ [简体中文](README.md)** · 🔗 Repo: <https://github.com/chenyunshan/cc-notify>
+
+![cc-notify preview](assets/cc-notify.png)
 
 Stop watching the screen. When Claude Code **needs permission, is waiting for input, or finishes a task**, cc-notify alerts you with a **curated sound + spoken voice + (optional) music + (optional) phone push**.
 
