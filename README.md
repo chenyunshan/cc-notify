@@ -1,10 +1,12 @@
 # cc-notify · Claude Code 通知插件
 
+**[English](README.en.md) ｜ 简体中文**
+
 让 Claude Code 不用盯屏。当它**需要权限 / 等待输入 / 任务完成**时，自动用
 **精选提示音 + 语音播报 +（可选）音乐 + （可选）手机推送**提醒你。
 
 - 🔔 两类事件，听感分明：紧急（需要你操作）= 明亮「叮—叮」双音；完成 = 上行琴音。
-- 🗣️ 语音播报：紧急说「克劳德需要你操作」，完成说「任务完成了」。
+- 🗣️ 语音播报：紧急说「克劳德需要你操作」，完成说「任务完成了」（均可自定义）。
 - 📱 手机推送：Bark / PushDeer / Server酱 / 企业微信 / ntfy / 飞书 / 钉钉 / PushPlus / Telegram 任选其一。
 - 🪟 跨平台：Windows / macOS / Linux。零运行时依赖（仅用 Node 内置模块）。
 - 😴 傻瓜：装好声音/语音即用；手机推送一条命令搞定，全程不用手改文件。
@@ -76,7 +78,7 @@
   - 打开 `beep_fallback`：紧急/完成额外用 PC 蜂鸣器响一声（台式机蜂鸣器独立于声卡，静音也可能听到；多数笔记本无蜂鸣器则退回系统提示音）。
   - 打开 `visual_fallback`：紧急事件弹系统通知 / 消息框，静音也看得到。
   - **最可靠**：配置**手机推送**（ntfy / Bark 等）——完全独立于本地音频，静音、坏卡、人不在电脑前都能收到。
-- 跨平台实现：蜂鸣 Windows=`console.beep`（PC 蜂鸣器）/ macOS=`osascript beep` / Linux=终端响铃；弹窗 Windows=`msg` / macOS=通知中心 / Linux=`notify-send`。
+- 跨平台实现：蜂鸣 Windows=`console.beep`（PC 蜂鸣器）/ macOS=`osascript beep` / Linux=终端响铃；弹窗 Windows=气泡通知（NotifyIcon，自动消失）/ macOS=通知中心 / Linux=`notify-send`。
 
 ## 自检
 
@@ -104,36 +106,6 @@ hooks 随插件一并移除，干净利落。
 
 插件向 Claude Code 注册了两个 hook：`Notification`（含权限请求 / 等待输入）与 `Stop`（回合结束 / 任务完成）。事件触发时，`handler.js` 读取事件 JSON 与配置，分类为「紧急 / 完成」，再分发到提示音、语音、（可选）音乐与手机推送。本地提示同步执行，手机推送后台并发，全程超时兜底，**绝不卡住会话**。
 
----
+## 许可
 
-## English
-
-**cc-notify** is a Claude Code plugin that frees you from watching the screen. When Claude Code **needs permission, waits for input, or finishes a task**, it alerts you with a curated sound, spoken voice, optional music, and an optional phone push.
-
-### Install
-
-```text
-/plugin marketplace add chenyunshan/cc-notify
-/plugin install cc-notify@cc-notify
-```
-
-Sound and voice work immediately — hooks are registered automatically, no config editing needed.
-
-### Configure phone push (optional)
-
-Run `/cc-notify:setup`; it asks which channel you want (Bark / PushDeer / ServerChan / WeCom / ntfy / Feishu / DingTalk / PushPlus / Telegram), takes your key, writes the config, and sends a test notification.
-
-### Commands
-
-- `/cc-notify:setup` — interactive setup for sound/voice/music/phone (no file editing).
-- `/cc-notify:test` — send two test notifications (urgent + done).
-- `/cc-notify:status` — show current settings and the resolved plan.
-
-### Notes
-
-- Cross-platform (Windows / macOS / Linux), zero runtime dependencies (Node built-ins only).
-- Config file: `~/.claude/cc-notify/config.json`.
-- Sound playback falls back: bundled WAV → system sound → programmatic beep.
-- Self-check (no sound/push): `echo '{"hook_event_name":"Stop"}' | CC_NOTIFY_DRYRUN=1 node plugins/cc-notify/handler.js --event Stop`
-
-MIT License.
+MIT License。
