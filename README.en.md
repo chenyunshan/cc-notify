@@ -23,9 +23,11 @@ Stop watching the screen. When Claude Code **needs permission, is waiting for in
 Run two lines inside Claude Code:
 
 ```text
-/plugin marketplace add chenyunshan/cc-notify
+/plugin marketplace add https://github.com/chenyunshan/cc-notify
 /plugin install cc-notify@cc-notify
 ```
+
+> Enter the two commands **one at a time**, and use the full **https://** URL above (the `owner/repo` shorthand uses SSH, which fails without an SSH key).
 
 Sound and voice work **immediately** — hooks are registered automatically, no config file to edit.
 

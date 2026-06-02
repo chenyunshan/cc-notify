@@ -24,9 +24,11 @@
 在 Claude Code 里执行两行：
 
 ```text
-/plugin marketplace add chenyunshan/cc-notify
+/plugin marketplace add https://github.com/chenyunshan/cc-notify
 /plugin install cc-notify@cc-notify
 ```
+
+> 两条命令**分两次**输入；用上面的 **https:// 完整地址**（用 `用户名/仓库` 简写会走 SSH，未配公钥会失败）。
 
 装好后**声音和语音立即生效**，hooks 已随插件自动注册，无需改任何配置文件。
 
