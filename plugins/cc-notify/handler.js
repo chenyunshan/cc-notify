@@ -10,6 +10,7 @@ const { spawn } = require('child_process');
 const DEFAULTS = {
   sound: true, voice: true, music_on_done: false, music_file: '',
   sound_urgent: 'default', sound_done: 'default',
+  beep_fallback: false, visual_fallback: false,
   voice_urgent: '克劳德需要你操作', voice_done: '任务完成了',
   phone: {
     provider: 'none', bark_key: '', pushdeer_key: '', serverchan_key: '',
@@ -57,7 +58,10 @@ function mergeConfig(user) {
 function loadConfig(paths) {
   const list = paths || [USER_CONFIG, BUNDLED_CONFIG];
   for (const p of list) {
-    try { return mergeConfig(JSON.parse(fs.readFileSync(p, 'utf8'))); } catch { /* 下一个 */ }
+    try {
+      const raw = fs.readFileSync(p, 'utf8').replace(/^﻿/, ''); // 去掉 Windows 常见的 UTF-8 BOM
+      return mergeConfig(JSON.parse(raw));
+    } catch { /* 下一个 */ }
   }
   return mergeConfig({});
 }
@@ -115,11 +119,15 @@ function buildPhoneRequest(cfg, c) {
 
 function planActions(event, payload, cfg) {
   const c = classify(event, payload, cfg);
+  const sound = resolveSound(cfg, c.cls);
+  const pureBeep = sound.length === 1 && sound[0].type === 'beep';
   return {
     event, class: c.cls, title: c.title, body: c.body, speech: c.speech,
-    sound: resolveSound(cfg, c.cls),
+    sound,
     voice: !!cfg.voice,
     music: { on: c.cls === 'done' && !!cfg.music_on_done, file: cfg.music_file || '' },
+    beep_fallback: !!cfg.beep_fallback && sound.length > 0 && !pureBeep,
+    visual: !!cfg.visual_fallback && c.cls === 'urgent',
     phone: buildPhoneRequest(cfg, c)
   };
 }
@@ -178,7 +186,9 @@ function beep(cls) {
       : '[console]::beep(523,140); [console]::beep(659,140); [console]::beep(784,140); [console]::beep(1047,260)';
     return run('powershell', ['-NoProfile', '-Command', seq], 6000);
   }
-  try { process.stderr.write(''); } catch {}
+  if (SYS === 'darwin') return run('osascript', ['-e', cls === 'urgent' ? 'beep 3' : 'beep 1'], 6000);
+  // linux：终端响铃（多数终端会触发系统提示音）；无控制终端时退回 stderr BEL
+  try { fs.writeFileSync('/dev/tty', ''); } catch { try { process.stderr.write(''); } catch {} }
   return Promise.resolve(true);
 }
 
@@ -233,6 +243,15 @@ function httpRequest(reqSpec) {
   });
 }
 
+// 可视化兜底：静音/声卡故障时仍能"看到"提醒（跨平台）
+function showVisual(title, body) {
+  const safe = (s) => String(s).replace(/"/g, '');
+  if (SYS === 'win32') return run('msg', ['*', '/TIME:30', safe(title) + '：' + safe(body)], 6000);
+  if (SYS === 'darwin')
+    return run('osascript', ['-e', `display notification "${safe(body)}" with title "${safe(title)}"`], 6000);
+  return run('notify-send', [safe(title), safe(body)], 6000);
+}
+
 // ── 主入口 ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -251,6 +270,8 @@ async function main() {
 
   const phoneP = plan.phone ? httpRequest(plan.phone).catch(() => {}) : Promise.resolve();
   if (plan.sound.length) await playSoundChain(plan.sound).catch(() => {});
+  if (plan.beep_fallback) await beep(plan.class).catch(() => {});
+  if (plan.visual) await showVisual(plan.title, plan.body).catch(() => {});
   if (plan.voice) await speak(plan.speech).catch(() => {});
   if (plan.music.on) await playMusic(plan.music.file).catch(() => {});
   await Promise.race([phoneP, new Promise((r) => setTimeout(r, 8000))]);

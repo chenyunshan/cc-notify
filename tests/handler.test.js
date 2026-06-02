@@ -53,6 +53,15 @@ test('loadConfig: 全部读不到时回退 DEFAULTS', () => {
   assert.deepEqual(c, h.mergeConfig({}));
 });
 
+test('loadConfig: 容忍 UTF-8 BOM（Windows 常见）', () => {
+  const tmp = pathmod.join(os.tmpdir(), 'ccn-bom-' + process.pid + '.json');
+  fs.writeFileSync(tmp, '﻿' + JSON.stringify({ voice: false }));
+  const c = h.loadConfig([tmp]);
+  assert.equal(c.voice, false);
+  assert.equal(c.sound, true);
+  fs.unlinkSync(tmp);
+});
+
 test('resolveSound: 默认 = WAV → 系统 → beep', () => {
   const chain = h.resolveSound(h.DEFAULTS, 'urgent');
   assert.equal(chain.length, 3);
@@ -153,4 +162,30 @@ test('DRYRUN: handler 子进程输出计划到 stderr 且退出 0', () => {
   const plan = JSON.parse(r.stderr);
   assert.equal(plan.class, 'urgent');
   assert.ok(plan.title.includes('需要你'));
+});
+
+test('planActions: beep_fallback 默认关 → false', () => {
+  assert.equal(h.planActions('Notification', {}, h.DEFAULTS).beep_fallback, false);
+});
+
+test('planActions: beep_fallback 开 → urgent 与 done 都额外蜂鸣', () => {
+  const cfg = h.mergeConfig({ beep_fallback: true });
+  assert.equal(h.planActions('Notification', {}, cfg).beep_fallback, true);
+  assert.equal(h.planActions('Stop', {}, cfg).beep_fallback, true);
+});
+
+test('planActions: beep_fallback 开 + 纯 beep 模式 → 不重复蜂鸣', () => {
+  const cfg = h.mergeConfig({ beep_fallback: true, sound_urgent: 'beep' });
+  assert.equal(h.planActions('Notification', {}, cfg).beep_fallback, false);
+});
+
+test('planActions: beep_fallback 开 + sound 总关 → false', () => {
+  const cfg = h.mergeConfig({ beep_fallback: true, sound: false });
+  assert.equal(h.planActions('Notification', {}, cfg).beep_fallback, false);
+});
+
+test('planActions: visual_fallback 开 → 仅 urgent 弹窗', () => {
+  const cfg = h.mergeConfig({ visual_fallback: true });
+  assert.equal(h.planActions('Notification', {}, cfg).visual, true);
+  assert.equal(h.planActions('Stop', {}, cfg).visual, false);
 });

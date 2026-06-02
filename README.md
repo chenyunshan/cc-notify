@@ -50,6 +50,8 @@
 | `music_file` | `""` | 音乐文件绝对路径（`.wav` 最稳） |
 | `sound_urgent` | `"default"` | 紧急提示音：`default`(内置WAV) / `system` / `beep` / `off` / 自定义 wav 路径 |
 | `sound_done` | `"default"` | 完成提示音：同上 |
+| `beep_fallback` | `false` | 硬件蜂鸣兜底：紧急/完成额外用 PC 蜂鸣器响一声（见下「静音 / 声卡故障」） |
+| `visual_fallback` | `false` | 可视化弹窗兜底：仅紧急事件弹系统通知（静音也看得到） |
 | `voice_urgent` | `"克劳德需要你操作"` | 紧急播报短句 |
 | `voice_done` | `"任务完成了"` | 完成播报短句 |
 | `phone.provider` | `"none"` | `none`/`bark`/`pushdeer`/`serverchan`/`wecom`/`ntfy` |
@@ -61,6 +63,15 @@
 | `phone.ntfy_topic` | `""` | ntfy 主题名（自定义唯一字符串） |
 
 提示音播放采用**回退链**：内置 WAV → 系统提示音 → 程序蜂鸣，任何环境都至少有声音。
+
+### 静音 / 声卡故障 怎么办
+
+- **声卡故障 / 缺失**：回退链会自动退到程序蜂鸣（Windows 走 PC 蜂鸣器，有硬件蜂鸣器的机器能听到）。
+- **仅静音**（设备正常、音量为 0 或被 mute）：WAV 会「成功」播放但听不到，本地声音无法可靠兜底。此时：
+  - 打开 `beep_fallback`：紧急/完成额外用 PC 蜂鸣器响一声（台式机蜂鸣器独立于声卡，静音也可能听到；多数笔记本无蜂鸣器则退回系统提示音）。
+  - 打开 `visual_fallback`：紧急事件弹系统通知 / 消息框，静音也看得到。
+  - **最可靠**：配置**手机推送**（ntfy / Bark 等）——完全独立于本地音频，静音、坏卡、人不在电脑前都能收到。
+- 跨平台实现：蜂鸣 Windows=`console.beep`（PC 蜂鸣器）/ macOS=`osascript beep` / Linux=终端响铃；弹窗 Windows=`msg` / macOS=通知中心 / Linux=`notify-send`。
 
 ## 自检
 

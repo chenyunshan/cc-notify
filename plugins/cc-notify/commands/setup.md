@@ -13,7 +13,10 @@ description: 配置 cc-notify 的声音/语音/音乐与手机推送（交互式
    - 是否开启提示音？（默认 开）
    - 是否开启语音播报？（默认 开）
    - 任务完成时是否播放音乐？（默认 关；若开，再问音乐文件绝对路径，.wav 最稳）
+   - 硬件蜂鸣兜底 beep_fallback？（默认 关。开启后紧急/完成会额外用 PC 蜂鸣器响一声；台式机有蜂鸣器时即使系统静音/声卡故障也可能听到。代价：正常机器会「WAV+蜂鸣」双响。）
+   - 可视化弹窗兜底 visual_fallback？（默认 关。开启后仅「需要权限/输入」的紧急事件弹一个系统通知/消息框，静音也看得到。）
    - 选择手机推送渠道：不需要 / Bark / PushDeer / Server酱 / 企业微信 / ntfy。
+     （请提示用户：手机推送是「静音 / 声卡故障 / 人不在电脑前」时最可靠的兜底，建议至少配一个；ntfy 免费免注册、最易上手。）
 
 3. 若选了手机渠道，向用户索取对应凭据（提示在终端粘贴）：
    - Bark：bark_key
@@ -31,6 +34,8 @@ description: 配置 cc-notify 的声音/语音/音乐与手机推送（交互式
      "music_file": "",
      "sound_urgent": "default",
      "sound_done": "default",
+     "beep_fallback": false,
+     "visual_fallback": false,
      "voice_urgent": "克劳德需要你操作",
      "voice_done": "任务完成了",
      "phone": {
