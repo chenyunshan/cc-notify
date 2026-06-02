@@ -6,5 +6,5 @@
   "homepage": "https://github.com/chenyunshan/cc-notify",
   "repository": "https://github.com/chenyunshan/cc-notify",
   "license": "MIT",
-  "keywords": ["notification", "hooks", "tts", "bark", "ntfy", "productivity"]
+  "keywords": ["notification", "hooks", "tts", "bark", "ntfy", "feishu", "dingtalk", "telegram", "pushplus", "productivity"]
 }

@@ -15,8 +15,8 @@ description: 配置 cc-notify 的声音/语音/音乐与手机推送（交互式
    - 任务完成时是否播放音乐？（默认 关；若开，再问音乐文件绝对路径，.wav 最稳）
    - 硬件蜂鸣兜底 beep_fallback？（默认 关。开启后紧急/完成会额外用 PC 蜂鸣器响一声；台式机有蜂鸣器时即使系统静音/声卡故障也可能听到。代价：正常机器会「WAV+蜂鸣」双响。）
    - 可视化弹窗兜底 visual_fallback？（默认 关。开启后仅「需要权限/输入」的紧急事件弹一个系统通知/消息框，静音也看得到。）
-   - 选择手机推送渠道：不需要 / Bark / PushDeer / Server酱 / 企业微信 / ntfy。
-     （请提示用户：手机推送是「静音 / 声卡故障 / 人不在电脑前」时最可靠的兜底，建议至少配一个；ntfy 免费免注册、最易上手。）
+   - 选择手机推送渠道：不需要 / Bark / PushDeer / Server酱 / 企业微信 / ntfy / 飞书 / 钉钉 / PushPlus / Telegram。
+     （请提示用户：手机推送是「静音 / 声卡故障 / 人不在电脑前」时最可靠的兜底，建议至少配一个；ntfy 免费免注册、最易上手。微信可用 Server酱(个人微信)、企业微信 或 PushPlus(公众号) 接收。）
 
 3. 若选了手机渠道，向用户索取对应凭据（提示在终端粘贴）：
    - Bark：bark_key
@@ -24,6 +24,10 @@ description: 配置 cc-notify 的声音/语音/音乐与手机推送（交互式
    - Server酱：serverchan_key
    - 企业微信：wecom_webhook（群机器人 URL）
    - ntfy：ntfy_server（默认 https://ntfy.sh）与 ntfy_topic（自定义唯一字符串）
+   - 飞书：feishu_webhook（群自定义机器人 Webhook URL）
+   - 钉钉：dingtalk_webhook（群自定义机器人 Webhook URL；机器人安全设置建议用「自定义关键词」并包含 Claude，因为通知标题含 "Claude Code"）
+   - PushPlus：pushplus_token（pushplus.plus 的 token，微信公众号「pushplus」接收）
+   - Telegram：tg_bot_token 与 tg_chat_id
 
 4. 把结果**合并**写入 `~/.claude/cc-notify/config.json`（不存在则创建目录）。完整结构如下，未涉及的字段保留原值或默认：
    ```json
@@ -45,7 +49,12 @@ description: 配置 cc-notify 的声音/语音/音乐与手机推送（交互式
        "serverchan_key": "",
        "wecom_webhook": "",
        "ntfy_server": "https://ntfy.sh",
-       "ntfy_topic": ""
+       "ntfy_topic": "",
+       "feishu_webhook": "",
+       "dingtalk_webhook": "",
+       "pushplus_token": "",
+       "tg_bot_token": "",
+       "tg_chat_id": ""
      }
    }
    ```

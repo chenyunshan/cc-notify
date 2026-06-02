@@ -5,7 +5,7 @@
 
 - 🔔 两类事件，听感分明：紧急（需要你操作）= 明亮「叮—叮」双音；完成 = 上行琴音。
 - 🗣️ 语音播报：紧急说「克劳德需要你操作」，完成说「任务完成了」。
-- 📱 手机推送：Bark / PushDeer / Server酱 / 企业微信 / ntfy 任选其一。
+- 📱 手机推送：Bark / PushDeer / Server酱 / 企业微信 / ntfy / 飞书 / 钉钉 / PushPlus / Telegram 任选其一。
 - 🪟 跨平台：Windows / macOS / Linux。零运行时依赖（仅用 Node 内置模块）。
 - 😴 傻瓜：装好声音/语音即用；手机推送一条命令搞定，全程不用手改文件。
 
@@ -54,13 +54,18 @@
 | `visual_fallback` | `false` | 可视化弹窗兜底：仅紧急事件弹系统通知（静音也看得到） |
 | `voice_urgent` | `"克劳德需要你操作"` | 紧急播报短句 |
 | `voice_done` | `"任务完成了"` | 完成播报短句 |
-| `phone.provider` | `"none"` | `none`/`bark`/`pushdeer`/`serverchan`/`wecom`/`ntfy` |
+| `phone.provider` | `"none"` | `none`/`bark`/`pushdeer`/`serverchan`/`wecom`/`ntfy`/`feishu`/`dingtalk`/`pushplus`/`telegram` |
 | `phone.bark_key` | `""` | Bark 的 key |
 | `phone.pushdeer_key` | `""` | PushDeer 的 pushkey |
-| `phone.serverchan_key` | `""` | Server酱 的 SendKey |
+| `phone.serverchan_key` | `""` | Server酱 的 SendKey（个人微信收） |
 | `phone.wecom_webhook` | `""` | 企业微信群机器人 Webhook URL |
 | `phone.ntfy_server` | `"https://ntfy.sh"` | ntfy 服务器（可自托管） |
 | `phone.ntfy_topic` | `""` | ntfy 主题名（自定义唯一字符串） |
+| `phone.feishu_webhook` | `""` | 飞书群自定义机器人 Webhook |
+| `phone.dingtalk_webhook` | `""` | 钉钉群自定义机器人 Webhook（安全设置建议「自定义关键词」含 Claude） |
+| `phone.pushplus_token` | `""` | PushPlus token（微信公众号「pushplus」收） |
+| `phone.tg_bot_token` | `""` | Telegram Bot token |
+| `phone.tg_chat_id` | `""` | Telegram chat id |
 
 提示音播放采用**回退链**：内置 WAV → 系统提示音 → 程序蜂鸣，任何环境都至少有声音。
 
@@ -116,7 +121,7 @@ Sound and voice work immediately — hooks are registered automatically, no conf
 
 ### Configure phone push (optional)
 
-Run `/cc-notify:setup`; it asks which channel you want (Bark / PushDeer / ServerChan / WeCom / ntfy), takes your key, writes the config, and sends a test notification.
+Run `/cc-notify:setup`; it asks which channel you want (Bark / PushDeer / ServerChan / WeCom / ntfy / Feishu / DingTalk / PushPlus / Telegram), takes your key, writes the config, and sends a test notification.
 
 ### Commands
 

@@ -14,7 +14,9 @@ const DEFAULTS = {
   voice_urgent: '克劳德需要你操作', voice_done: '任务完成了',
   phone: {
     provider: 'none', bark_key: '', pushdeer_key: '', serverchan_key: '',
-    wecom_webhook: '', ntfy_server: 'https://ntfy.sh', ntfy_topic: ''
+    wecom_webhook: '', ntfy_server: 'https://ntfy.sh', ntfy_topic: '',
+    feishu_webhook: '', dingtalk_webhook: '', pushplus_token: '',
+    tg_bot_token: '', tg_chat_id: ''
   }
 };
 
@@ -113,6 +115,26 @@ function buildPhoneRequest(cfg, c) {
     return { method: 'POST', url: `${server}/${p.ntfy_topic}`,
       headers: { Priority: urgent ? '5' : '3', Tags: urgent ? 'warning' : 'white_check_mark' },
       body: `${title}\n${body}` };
+  }
+  if (prov === 'feishu') {
+    const payload = JSON.stringify({ msg_type: 'text', content: { text: `${title}\n${body}` } });
+    return { method: 'POST', url: p.feishu_webhook,
+      headers: { 'Content-Type': 'application/json' }, body: payload };
+  }
+  if (prov === 'dingtalk') {
+    const payload = JSON.stringify({ msgtype: 'text', text: { content: `${title}\n${body}` } });
+    return { method: 'POST', url: p.dingtalk_webhook,
+      headers: { 'Content-Type': 'application/json' }, body: payload };
+  }
+  if (prov === 'pushplus') {
+    const payload = JSON.stringify({ token: p.pushplus_token, title, content: body, template: 'txt' });
+    return { method: 'POST', url: 'https://www.pushplus.plus/send',
+      headers: { 'Content-Type': 'application/json' }, body: payload };
+  }
+  if (prov === 'telegram') {
+    const payload = JSON.stringify({ chat_id: p.tg_chat_id, text: `${title}\n${body}` });
+    return { method: 'POST', url: `https://api.telegram.org/bot${p.tg_bot_token}/sendMessage`,
+      headers: { 'Content-Type': 'application/json' }, body: payload };
   }
   return null;
 }
@@ -243,13 +265,21 @@ function httpRequest(reqSpec) {
   });
 }
 
-// 可视化兜底：静音/声卡故障时仍能"看到"提醒（跨平台）
+// 可视化兜底：静音/声卡故障时仍能"看到"提醒（跨平台，自动消失）
 function showVisual(title, body) {
-  const safe = (s) => String(s).replace(/"/g, '');
-  if (SYS === 'win32') return run('msg', ['*', '/TIME:30', safe(title) + '：' + safe(body)], 6000);
+  const noQuote = (s) => String(s).replace(/"/g, '');
+  const noTick = (s) => String(s).replace(/'/g, '');
+  if (SYS === 'win32') {
+    const ps = 'Add-Type -AssemblyName System.Windows.Forms,System.Drawing;' +
+      '$n=New-Object System.Windows.Forms.NotifyIcon;' +
+      '$n.Icon=[System.Drawing.SystemIcons]::Information;$n.Visible=$true;' +
+      "$n.ShowBalloonTip(5000,'" + noTick(title) + "','" + noTick(body) + "',[System.Windows.Forms.ToolTipIcon]::Info);" +
+      'Start-Sleep -Seconds 4;$n.Dispose()';
+    return run('powershell', ['-NoProfile', '-Command', ps], 9000);
+  }
   if (SYS === 'darwin')
-    return run('osascript', ['-e', `display notification "${safe(body)}" with title "${safe(title)}"`], 6000);
-  return run('notify-send', [safe(title), safe(body)], 6000);
+    return run('osascript', ['-e', `display notification "${noQuote(body)}" with title "${noQuote(title)}"`], 6000);
+  return run('notify-send', ['-t', '8000', noQuote(title), noQuote(body)], 6000);
 }
 
 // ── 主入口 ───────────────────────────────────────────────────────────────────

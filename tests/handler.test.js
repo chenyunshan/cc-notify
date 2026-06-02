@@ -134,6 +134,32 @@ test('buildPhoneRequest: ntfy 拼 server/topic 与 Priority', () => {
   assert.equal(r.headers.Priority, '5');
 });
 
+test('buildPhoneRequest: feishu JSON text', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'feishu', feishu_webhook: 'https://open.feishu.cn/x' } }), DONE_C);
+  assert.equal(r.method, 'POST');
+  assert.equal(r.url, 'https://open.feishu.cn/x');
+  assert.ok(r.body.includes('msg_type'));
+  assert.ok(r.body.includes('"text"'));
+});
+
+test('buildPhoneRequest: dingtalk JSON text', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'dingtalk', dingtalk_webhook: 'https://oapi.dingtalk.com/x' } }), DONE_C);
+  assert.equal(r.url, 'https://oapi.dingtalk.com/x');
+  assert.ok(r.body.includes('msgtype'));
+});
+
+test('buildPhoneRequest: pushplus token', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'pushplus', pushplus_token: 'TK' } }), DONE_C);
+  assert.equal(r.url, 'https://www.pushplus.plus/send');
+  assert.ok(r.body.includes('"token":"TK"'));
+});
+
+test('buildPhoneRequest: telegram bot URL + chat_id', () => {
+  const r = h.buildPhoneRequest(h.mergeConfig({ phone: { provider: 'telegram', tg_bot_token: 'BT', tg_chat_id: 'CID' } }), URGENT_C);
+  assert.equal(r.url, 'https://api.telegram.org/botBT/sendMessage');
+  assert.ok(r.body.includes('"chat_id":"CID"'));
+});
+
 test('planActions: 组合分类/声音/语音/音乐/推送', () => {
   const cfg = h.mergeConfig({ music_on_done: true, music_file: 'm.wav',
     phone: { provider: 'ntfy', ntfy_topic: 't' } });
