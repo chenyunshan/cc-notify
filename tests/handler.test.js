@@ -25,3 +25,30 @@ test('classify: 超长 message 截断到 120 字 + 省略号', () => {
   const c = h.classify('Notification', { message: long }, h.DEFAULTS);
   assert.ok(c.body.startsWith('x'.repeat(120) + '…'));
 });
+
+const fs = require('node:fs');
+const os = require('node:os');
+const pathmod = require('node:path');
+
+test('mergeConfig: 用户值覆盖默认，phone 深合并', () => {
+  const m = h.mergeConfig({ voice: false, phone: { provider: 'bark', bark_key: 'k' } });
+  assert.equal(m.voice, false);
+  assert.equal(m.sound, true);
+  assert.equal(m.phone.provider, 'bark');
+  assert.equal(m.phone.bark_key, 'k');
+  assert.equal(m.phone.ntfy_server, 'https://ntfy.sh');
+});
+
+test('loadConfig: 读到第一个可用文件并合并默认', () => {
+  const tmp = pathmod.join(os.tmpdir(), 'ccn-test-' + process.pid + '.json');
+  fs.writeFileSync(tmp, JSON.stringify({ sound: false }));
+  const c = h.loadConfig([tmp]);
+  assert.equal(c.sound, false);
+  assert.equal(c.voice, true);
+  fs.unlinkSync(tmp);
+});
+
+test('loadConfig: 全部读不到时回退 DEFAULTS', () => {
+  const c = h.loadConfig(['/nonexistent/a.json', '/nonexistent/b.json']);
+  assert.deepEqual(c, h.mergeConfig({}));
+});
